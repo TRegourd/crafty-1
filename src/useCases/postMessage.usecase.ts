@@ -9,6 +9,9 @@ export type PostMessageCommand = {
 	message: string;
 };
 
+export class TooLongMessageError extends Error {}
+export class EmptyMessageError extends Error {}
+
 export interface MessageRepository {
 	save(_msg: Message): void;
 }
@@ -23,6 +26,12 @@ export class PostMessageUseCase {
 		private dateProvider: DateProvider
 	) {}
 	invoke(postedMessage: PostMessageCommand): void {
+		if (postedMessage.message.trim().length === 0) {
+			throw new EmptyMessageError();
+		}
+		if (postedMessage.message.length > 280) {
+			throw new TooLongMessageError();
+		}
 		this.messageRepository.save({
 			author: postedMessage.author,
 			message: postedMessage.message,
